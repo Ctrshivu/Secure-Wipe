@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
   # One-Click Secure Wipe App
 
@@ -9,3 +10,6 @@
 
   Run `npm run dev` to start the development server.
   
+=======
+# ONE-CLICK-SECURE-WIPE
+>>>>>>> 6d9e6b96c9647fe0c7eaa1ea7523ed4942f9aad3
