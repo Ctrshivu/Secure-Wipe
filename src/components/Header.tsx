@@ -1,7 +1,7 @@
-import React from 'react';
-import { Shield, Moon, Sun } from 'lucide-react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
+import React from "react";
+import { Shield, Moon, Sun } from "lucide-react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 interface HeaderProps {
   darkMode: boolean;
@@ -18,18 +18,24 @@ export function Header({ darkMode, setDarkMode }: HeaderProps) {
           </div>
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              SecureWipe Pro
+              SecureWipe
             </h1>
-            <p className="text-sm text-muted-foreground">Professional Data Sanitization Tool</p>
+            <p className="text-sm text-muted-foreground">
+              Professional Data Sanitization Tool
+            </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm font-medium text-green-600 dark:text-green-400">DEMO MODE</p>
-            <p className="text-xs text-muted-foreground">Safe testing environment</p>
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">
+              WORKING MODE
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Safe testing environment
+            </p>
           </div>
-          
+
           <Button
             variant="ghost"
             size="icon"

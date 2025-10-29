@@ -5,78 +5,78 @@ import {
   Usb,
   CheckCircle,
   AlertCircle,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
+import { Device } from "../types/Device"; // ✅ Correct import path
 
-interface Device {
-  id: string;
-  name: string;
-  type: "drive" | "android" | "usb" | "pc";
-  size?: string;
-  status: "ready" | "warning" | "error";
-  details: string;
-}
-
-interface DevicesResponse {
-  phones?: { serial: string; name: string }[];
-  pc_name?: string;
-  drives?: {
-    device: string;
-    mountpoint: string;
-    fstype: string;
-    name: string;
-  }[];
-}
-
-interface DeviceDetectionProps {
-  setDevices: (devices: Device[]) => void; // <- Lift devices to App.tsx
-}
-
-export function DeviceDetection({ setDevices }: DeviceDetectionProps) {
+export function DeviceDetection({
+  setDevices,
+}: {
+  setDevices: (devices: Device[]) => void;
+}) {
   const [devices, setLocalDevices] = useState<Device[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {}
+  );
 
+  // ---------------- FETCH DEVICES ----------------
   useEffect(() => {
     const fetchDevices = async () => {
       try {
         const res = await fetch("http://127.0.0.1:8000/devices");
-        const data: DevicesResponse = await res.json();
-
+        const data = await res.json();
         let deviceList: Device[] = [];
 
+        // Android devices
         if (data.phones && data.phones.length > 0) {
-          deviceList = data.phones.map((phone) => ({
+          deviceList = data.phones.map((phone: any) => ({
             id: phone.serial,
-            name: phone.name,
+            name: `Phone: ${phone.name}`,
             type: "android",
             status: "ready",
-            details: "Connected via USB debugging",
+            details: phone.details || "USB Debugging enabled and authorized",
           }));
-        } else if (data.drives && data.drives.length > 0) {
-          deviceList = data.drives.map((drive) => ({
-            id: drive.device,
-            name: (drive.name || drive.device).charAt(0), // Only show drive letter
-            type: "drive",
-            status: drive.device === "C:\\" ? "warning" : "ready",
-            details:
-              drive.device === "C:\\"
-                ? "Contains system files - use with caution"
-                : "Safe for wiping",
-          }));
-
-          if (data.pc_name) {
-            deviceList.unshift({
-              id: "pc_name",
-              name: data.pc_name,
-              type: "pc",
-              status: "ready",
-              details: "This is the current Windows PC",
-            });
-          }
         }
 
-        setLocalDevices(deviceList);
-        setDevices(deviceList); // <- Send devices up to App.tsx
+        // Windows drives
+        let driveDevices: Device[] = [];
+        if (data.drives && data.drives.length > 0) {
+          driveDevices = data.drives.map((drive: any) => {
+            const cleanId = drive.device.endsWith("\\")
+              ? drive.device
+              : drive.device + "\\";
+            const isSystem = cleanId.startsWith("C:");
+            return {
+              id: cleanId,
+              name: cleanId,
+              type: "drive",
+              status: isSystem ? "warning" : "ready",
+              details: isSystem
+                ? "Contains system files - use with caution"
+                : "Safe for wiping",
+              size: "N/A",
+            };
+          });
+        }
+
+        // PC name
+        if (data.pc_name) {
+          deviceList.unshift({
+            id: "pc_name",
+            name: data.pc_name,
+            type: "pc",
+            status: "ready",
+            details: "This is the current Windows PC",
+          });
+        }
+
+        const combined = [...deviceList, ...driveDevices];
+        setLocalDevices(combined);
+        setDevices(combined);
       } catch (err) {
         console.error("Error fetching devices:", err);
       }
@@ -85,7 +85,12 @@ export function DeviceDetection({ setDevices }: DeviceDetectionProps) {
     fetchDevices();
     const interval = setInterval(fetchDevices, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [setDevices]);
+
+  // ---------------- HELPERS ----------------
+  const toggleGroup = (id: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -128,64 +133,97 @@ export function DeviceDetection({ setDevices }: DeviceDetectionProps) {
     }
   };
 
-  // Total devices logic:
-  let totalDevices = 0;
-  if (devices.some((d) => d.type === "android")) {
-    totalDevices = devices.filter((d) => d.type === "android").length;
-  } else if (devices.some((d) => d.type === "drive")) {
-    totalDevices = 1;
-  }
+  // ---------------- FILTERS ----------------
+  const pc = devices.find((d) => d.type === "pc");
+  const drives = devices.filter((d) => d.type === "drive");
+  const phones = devices.filter((d) => d.type === "android");
 
+  const topLevelCount = (pc ? 1 : 0) + phones.length;
+
+  // ---------------- RENDER ----------------
   return (
-    <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
+    <Card className="border-0 bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           <HardDrive className="w-5 h-5 text-blue-600" />
           Detected Devices
         </CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-3">
-        {devices.map((device) => (
+        {/* PC Section */}
+        {pc && (
           <div
-            key={device.id}
-            className="p-4 rounded-lg border bg-card hover:bg-accent transition-colors cursor-pointer group"
+            className="p-3 border rounded-md bg-gray-50 dark:bg-gray-900 cursor-pointer hover:shadow-md transition-all"
+            onClick={() => toggleGroup(pc.id)}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-md bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
-                  {getIcon(device.type)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium">{device.name}</h4>
-                    {getStatusIcon(device.status)}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {device.details}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {device.size && (
-                      <Badge variant="secondary" className="text-xs">
-                        {device.size}
-                      </Badge>
-                    )}
-                    <Badge
-                      className={`text-xs ${getStatusColor(device.status)}`}
-                    >
-                      {device.status.charAt(0).toUpperCase() +
-                        device.status.slice(1)}
-                    </Badge>
-                  </div>
-                </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                {getIcon(pc.type)}
+                <span className="font-medium">{pc.name}</span>
+                {getStatusIcon(pc.status || "ready")}
               </div>
+              {expandedGroups[pc.id] ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </div>
+
+            <AnimatePresence>
+              {expandedGroups[pc.id] && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-3 pl-6 space-y-2"
+                >
+                  {drives.map((drive) => (
+                    <div
+                      key={drive.id}
+                      className="p-2 border rounded-md bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{drive.name}</span>
+                        <Badge
+                          className={`text-xs ${getStatusColor(
+                            drive.status || "ready"
+                          )}`}
+                        >
+                          {drive.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {drive.details}
+                      </p>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Android Phones */}
+        {phones.map((phone) => (
+          <div
+            key={phone.id}
+            className="p-3 border rounded-md bg-gray-50 dark:bg-gray-900 hover:shadow-md transition-all"
+          >
+            <div className="flex items-center gap-2">
+              {getIcon(phone.type)}
+              <span className="font-medium">{phone.name}</span>
+              {getStatusIcon(phone.status || "ready")}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {phone.details}
+            </p>
           </div>
         ))}
 
-        <div className="pt-3 mt-4 border-t">
-          <p className="text-sm text-muted-foreground text-center">
-            Total: {totalDevices} device{totalDevices !== 1 ? "s" : ""} detected
-          </p>
+        <div className="pt-3 mt-4 border-t text-center text-sm text-gray-500 dark:text-gray-400">
+          Total: {topLevelCount} device{topLevelCount !== 1 ? "s" : ""} detected
         </div>
       </CardContent>
     </Card>

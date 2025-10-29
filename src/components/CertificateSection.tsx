@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FileText, Download, Eye, Copy, Check } from "lucide-react";
+import { FileText, Download, Eye, Copy, Check, FileStack } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -11,38 +11,53 @@ import {
 } from "./ui/dialog";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
+import { Device } from "../types/Device";
+import { VerificationResult } from "./VerificationSection";
 
-export function CertificateSection() {
+interface CertificateSectionProps {
+  devices: Device[];
+  verificationResults: VerificationResult[];
+  logs?: string[]; // ✅ optional logs prop to capture deleted file names
+}
+
+export function CertificateSection({
+  devices,
+  verificationResults,
+  logs = [],
+}: CertificateSectionProps) {
   const [copied, setCopied] = useState(false);
 
+  // 🧠 Extract deleted file names from logs
+  const deletedFiles = logs
+    .filter((line) => line.startsWith("🗑️"))
+    .map((line) => line.replace("🗑️ ", ""));
+
   const certificateData = {
-    certificate_id: "CERT-SW-20250902-001",
-    timestamp: "2025-09-02T14:30:45Z",
+    certificate_id: `CERT-SW-${new Date()
+      .toISOString()
+      .slice(0, 10)
+      .replace(/-/g, "")}-001`,
+    timestamp: new Date().toISOString(),
     operation_type: "Secure Wipe - DoD 5220.22-M Standard",
-    devices: [
-      {
-        identifier: "C:",
-        name: "System Drive",
-        size_gb: 476,
-        serial_number: "WD-WXA1A23456789",
-        wipe_method: "3-pass overwrite",
-        verification_status: "PASSED",
-      },
-      {
-        identifier: "Samsung Galaxy S23",
-        name: "Android Device",
-        size_gb: 128,
-        serial_number: "RF8M12345678",
-        wipe_method: "Cryptographic erase",
-        verification_status: "PASSED",
-      },
-    ],
-    verification_tests: {
-      surface_scan: "PASSED",
-      deep_sector_analysis: "PASSED",
-      challenge_write_test: "PASSED",
-      magnetic_residue_check: "PASSED",
-    },
+    devices: devices.map((d) => ({
+      identifier: d.id,
+      name: d.name,
+      size_gb: d.size || "N/A",
+      serial_number: d.id,
+      wipe_method: "3-pass overwrite",
+      verification_status:
+        verificationResults.find((r) => r.id === d.id)?.status === "passed"
+          ? "PASSED"
+          : "FAILED",
+      deleted_files:
+        deletedFiles.length > 0 ? deletedFiles : ["(No file list available)"],
+    })),
+
+    verification_tests: verificationResults.reduce((acc, r) => {
+      acc[r.test] = r.status.toUpperCase();
+      return acc;
+    }, {} as Record<string, string>),
+
     compliance: {
       standard: "DoD 5220.22-M",
       nist_guidelines: "SP 800-88 Rev. 1",
@@ -64,24 +79,23 @@ export function CertificateSection() {
     }
   };
 
-  const downloadPDF = () => {
-    // In a real app, this would generate and download a PDF
+  const downloadJSON = () => {
+    const element = document.createElement("a");
+    const file = new Blob([jsonString], { type: "application/json" });
+    element.href = URL.createObjectURL(file);
+    element.download = `secure-wipe-certificate-${certificateData.certificate_id}.json`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const downloadTXT = () => {
     const element = document.createElement("a");
     const file = new Blob([`Certificate of Secure Wipe\n\n${jsonString}`], {
       type: "text/plain",
     });
     element.href = URL.createObjectURL(file);
     element.download = `secure-wipe-certificate-${certificateData.certificate_id}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
-  const downloadJSON = () => {
-    const element = document.createElement("a");
-    const file = new Blob([jsonString], { type: "application/json" });
-    element.href = URL.createObjectURL(file);
-    element.download = `secure-wipe-certificate-${certificateData.certificate_id}.json`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -96,6 +110,7 @@ export function CertificateSection() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Certificate Info */}
         <div className="p-4 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-orange-800 dark:text-orange-200">
@@ -128,43 +143,42 @@ export function CertificateSection() {
           </div>
         </div>
 
+        {/* JSON Preview */}
         <div className="space-y-2">
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full">
                 <Eye className="w-4 h-4 mr-2" />
-                Preview JSON Certificate
+                Preview Certificate JSON
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh]">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Certificate Data (JSON)
+                  <FileStack className="w-5 h-5" />
+                  Certificate Data (JSON Preview)
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyToClipboard}
-                    className="flex-1"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-2" />
-                        Copy JSON
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <ScrollArea className="h-96 w-full rounded-md border p-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyToClipboard}
+                  className="flex-1"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy JSON
+                    </>
+                  )}
+                </Button>
+                <ScrollArea className="h-96 w-full rounded-md border p-4 bg-gray-50 dark:bg-gray-900">
                   <pre className="text-xs font-mono whitespace-pre-wrap">
                     {jsonString}
                   </pre>
@@ -173,21 +187,23 @@ export function CertificateSection() {
             </DialogContent>
           </Dialog>
 
+          {/* Download Options */}
           <div className="grid grid-cols-2 gap-2">
             <Button onClick={downloadJSON} variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Download JSON
             </Button>
             <Button
-              onClick={downloadPDF}
+              onClick={downloadTXT}
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
             >
               <Download className="w-4 h-4 mr-2" />
-              Download PDF
+              Download TXT
             </Button>
           </div>
         </div>
 
+        {/* Summary Section */}
         <div className="pt-3 border-t space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Devices Certified:</span>
@@ -202,6 +218,23 @@ export function CertificateSection() {
             </Badge>
           </div>
         </div>
+
+        {/* Deleted Files Summary */}
+        {deletedFiles.length > 0 && (
+          <div className="mt-4 border-t pt-3">
+            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2 text-orange-700 dark:text-orange-300">
+              <FileStack className="w-4 h-4" />
+              Deleted Files Log
+            </h4>
+            <ScrollArea className="h-40 border rounded-md bg-gray-50 dark:bg-gray-900 p-2">
+              <ul className="text-xs font-mono space-y-1">
+                {deletedFiles.map((file, idx) => (
+                  <li key={idx}>🗑️ {file}</li>
+                ))}
+              </ul>
+            </ScrollArea>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
