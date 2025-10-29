@@ -129,7 +129,7 @@ Export / Report / Dashboard
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/SECUREWIPE-PRO.git
+git clone https://github.com/Ctrshivu/Secure-Wipe.git
 
 # Navigate to project folder
 cd SECUREWIPE-PRO/frontend
