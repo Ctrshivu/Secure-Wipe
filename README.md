@@ -175,6 +175,14 @@ We welcome contributions to enhance **SecureWipe Pro** 🚀
    ```bash
    git checkout -b feature/your-feature
    ```
+3. **Commit your changes**
+   ```
+   git commit -m "Added new verification module"
+   ```
+4. ** Push Your Changes**
+   ```
+   git push origin feature/your-feature
+   ```
 
 ## 📜 License
 
