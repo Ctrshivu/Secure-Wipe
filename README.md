@@ -179,7 +179,7 @@ We welcome contributions to enhance **SecureWipe Pro** 🚀
    ```
    git commit -m "Added new verification module"
    ```
-4. ** Push Your Changes**
+4. **Push Your Changes**
    ```
    git push origin feature/your-feature
    ```
