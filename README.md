@@ -186,7 +186,7 @@ We welcome contributions to enhance **SecureWipe Pro** 🚀
 
 ## 📜 License
 
-**his project is licensed under the MIT License — free for personal and commercial use with attribution. **
+**This project is licensed under the MIT License — free for personal and commercial use with attribution.**
 
 ## 🧠 Vision
 
