@@ -114,9 +114,9 @@ export function AuthScreen({ onAuthenticate, darkMode }: AuthScreenProps) {
 
           <div className="auth-screen__tagline">
             <h2 className="auth-screen__tagline-title">
-              Your Data.
+              Permanently Secure
               <br />
-              Permanently Secure.
+              Your data.
             </h2>
             <p className="auth-screen__tagline-subtitle">
               Powered by AI-driven data sanitization.
