@@ -1,0 +1,211 @@
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.loading-screen.dark {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+}
+
+.loading-screen__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-screen__blur-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.loading-screen__blur-circle--blue {
+  width: 300px;
+  height: 300px;
+  background: #3b82f6;
+  top: 10%;
+  left: 10%;
+}
+
+.loading-screen__blur-circle--green {
+  width: 250px;
+  height: 250px;
+  background: #10b981;
+  bottom: 10%;
+  right: 10%;
+  animation-delay: 3s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+
+
+.loading-screen__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.loading-screen__shield-container {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.loading-screen__particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #3b82f6;
+  border-radius: 50%;
+}
+
+.loading-screen__shield-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.loading-screen__shield-glass {
+  width: 120px;
+  height: 140px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 20px 20px 60px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.loading-screen.dark .loading-screen__shield-glass {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.loading-screen__shield-icon {
+  width: 40px;
+  height: 40px;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.loading-screen__lock-icon {
+  width: 24px;
+  height: 24px;
+  color: #10b981;
+}
+
+.loading-screen__outer-ring {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 30px 30px 70px 70px;
+  animation: rotate 4s linear infinite;
+}
+
+.loading-screen.dark .loading-screen__outer-ring {
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-screen__logo {
+  margin-bottom: 2rem;
+}
+
+.loading-screen__title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.loading-screen.dark .loading-screen__title {
+  color: white;
+}
+
+.loading-screen__divider {
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  margin: 1rem auto;
+  border-radius: 1px;
+}
+
+.loading-screen__status-container {
+  margin-top: 2rem;
+}
+
+.loading-screen__status-glass {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 25px;
+  padding: 1rem 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.loading-screen.dark .loading-screen__status-glass {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loading-screen__scan-icon {
+  width: 24px;
+  height: 24px;
+  color: #3b82f6;
+}
+
+.loading-screen__status-text {
+  color: #1f2937;
+  font-size: 1.1rem;
+  margin: 0;
+  animation: textFadeIn 0.3s ease-out;
+}
+
+.loading-screen.dark .loading-screen__status-text {
+  color: white;
+}
+
+@keyframes textFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-screen.exit {
+  animation: fadeOut 0.5s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+.loading-screen--hidden {
+  display: none;
+}

@@ -13,6 +13,15 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Progress } from "./ui/progress";
 import { Alert, AlertDescription } from "./ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Device } from "../types/Device"; // ✅ shared type
 
 interface ActionButtonsProps {
@@ -71,35 +80,34 @@ export function ActionButtons({
       <CardContent className="space-y-4">
         {/* Device Selector */}
         <div className="flex flex-col sm:flex-row gap-3 items-start">
-          <select
-            className="p-3 border border-gray-300 rounded-md flex-1 bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100 shadow-sm"
-            value={selectedDevice}
-            onChange={(e) => setSelectedDevice(e.target.value)}
-          >
-            <option value="" disabled>
-              Select Device
-            </option>
+          <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Select Device" />
+            </SelectTrigger>
+            <SelectContent>
+              {phones.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel className="font-semibold">📱 Android Devices</SelectLabel>
+                  {phones.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
 
-            {phones.length > 0 && (
-              <optgroup label="📱 Android Devices">
-                {phones.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-
-            {drives.length > 0 && (
-              <optgroup label="💻 Windows Drives">
-                {drives.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-          </select>
+              {drives.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel className="font-semibold">💻 Windows Drives</SelectLabel>
+                  {drives.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Safe Wipe */}

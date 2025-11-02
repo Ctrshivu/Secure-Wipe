@@ -9,9 +9,13 @@ import {
 } from "./components/VerificationSection";
 import { CertificateSection } from "./components/CertificateSection";
 import { StatusFooter } from "./components/StatusFooter";
+import { LoadingScreen } from "./components/LoadingScreen";
+import { AuthScreen } from "./components/AuthScreen";
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [wipeProgress, setWipeProgress] = useState(0);
   const [isWiping, setIsWiping] = useState(false);
   const [logs, setLogs] = useState<string[]>([
@@ -148,14 +152,28 @@ export default function App() {
   };
 
   // ---- UI ----
+  if (loading) {
+    return <LoadingScreen onComplete={() => setLoading(false)} darkMode={darkMode} />;
+  }
+
+  if (!authenticated) {
+    return <AuthScreen onAuthenticate={() => setAuthenticated(true)} darkMode={darkMode} />;
+  }
+
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
         darkMode ? "dark" : ""
       }`}
     >
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800 relative overflow-hidden">
+        {/* Background orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-green-400/20 dark:bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-400/10 dark:bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+        </div>
+        <div className="container mx-auto px-4 py-6 max-w-6xl relative z-10">
           <Header darkMode={darkMode} setDarkMode={setDarkMode} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

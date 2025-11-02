@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Terminal, HelpCircle, ChevronUp, ChevronDown } from "lucide-react";
+import { Terminal, HelpCircle, ChevronUp, ChevronDown, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -18,6 +18,22 @@ interface StatusFooterProps {
 export function StatusFooter({ logs }: StatusFooterProps) {
   const [logsExpanded, setLogsExpanded] = useState(false);
   const [helpExpanded, setHelpExpanded] = useState(false);
+
+  const downloadLogs = () => {
+    const logContent = logs.join('\n');
+    const header = `SecureWipe Pro - Status Logs Export\nGenerated on: ${new Date().toLocaleString()}\nTotal entries: ${logs.length}\n\n`;
+    const fullContent = header + logContent;
+
+    const blob = new Blob([fullContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `securewipe-logs-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const helpContent = [
     {
@@ -72,26 +88,37 @@ export function StatusFooter({ logs }: StatusFooterProps) {
               </CardTitle>
             </CardHeader>
           </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent>
-              <ScrollArea className="h-32 w-full rounded-md border bg-slate-50 dark:bg-slate-900 p-3">
-                <div className="space-y-1 font-mono text-xs">
-                  {logs.map((log, index) => (
-                    <div
-                      key={index}
-                      className="text-slate-700 dark:text-slate-300"
-                    >
-                      {log}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-              <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
-                <span>Auto-scroll enabled</span>
-                <span>Real-time updates</span>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
+            <CollapsibleContent>
+             <CardContent>
+               <div className="flex justify-end mb-3">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={downloadLogs}
+                   className="flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-700"
+                 >
+                   <Download className="w-4 h-4" />
+                   Download Logs
+                 </Button>
+               </div>
+               <ScrollArea className="h-32 w-full rounded-md border bg-slate-50 dark:bg-slate-900 p-3">
+                 <div className="space-y-1 font-mono text-xs">
+                   {logs.map((log, index) => (
+                     <div
+                       key={index}
+                       className="text-slate-700 dark:text-slate-300"
+                     >
+                       {log}
+                     </div>
+                   ))}
+                 </div>
+               </ScrollArea>
+               <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
+                 <span>Auto-scroll enabled</span>
+                 <span>Real-time updates</span>
+               </div>
+             </CardContent>
+           </CollapsibleContent>
         </Collapsible>
       </Card>
 
